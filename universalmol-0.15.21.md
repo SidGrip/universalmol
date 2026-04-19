@@ -2,9 +2,9 @@
 
 ## Overview
 
-Port UniversalMolecule (UMO) from its current 0.8.15.5 codebase to Bitcoin Core 0.15.2, following the same approach used for the Blakecoin 0.15.2 update (`Blakecoin-0.15.2-update`).
+Port UniversalMolecule (UMO) from its current 0.8.15.5 codebase to Bitcoin Core 0.15.2, following the same approach used for the Blakecoin 0.15.2 update (`Blakecoin-0.15.21`).
 
-**Reference codebase:** `../Blakecoin-0.15.2-update/` — the completed Blakecoin port to 0.15.2
+**Reference codebase:** `../Blakecoin-0.15.21/` — the completed Blakecoin port to 0.15.2
 **Original codebase:** `../universalmol/` — current 0.8.15.5 source with all coin-specific parameters
 
 ---
@@ -170,7 +170,7 @@ Note: Both soft and hard dust limits are the same (1000 sat), which is lower tha
 
 ### Phase 1: Copy & Rebrand the Blakecoin 0.15.2 Base
 
-1. **Copy** the entire `Blakecoin-0.15.2-update` codebase into this directory
+1. **Copy** the entire `Blakecoin-0.15.21` codebase into this directory
 2. **Rename** all Blakecoin references → UniversalMolecule:
    - Binary names: `universalmoleculed`, `universalmolecule-qt`, `universalmolecule-cli`, `universalmolecule-tx`
    - Config file: `universalmolecule.conf`, config dir `~/.universalmolecule/`
@@ -307,7 +307,7 @@ Note: Both soft and hard dust limits are the same (1000 sat), which is lower tha
 
 | What | Where |
 |------|-------|
-| Reference (completed) | `../Blakecoin-0.15.2-update/` |
+| Reference (completed) | `../Blakecoin-0.15.21/` |
 | Original coin source | `../universalmol/` |
 | Original params | `../universalmol/src/main.cpp`, `../universalmol/src/main.h` |
 | Original build script | `../universalmol/build.sh` |
