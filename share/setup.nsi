@@ -104,7 +104,7 @@ Section -post SEC0001
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
     WriteRegStr HKCR "universalmolecule" "URL Protocol" ""
-    WriteRegStr HKCR "universalmolecule" "" "URL:Bitcoin"
+    WriteRegStr HKCR "universalmolecule" "" "URL:UniversalMolecule"
     WriteRegStr HKCR "universalmolecule\DefaultIcon" "" $INSTDIR\universalmolecule-qt
     WriteRegStr HKCR "universalmolecule\shell\open\command" "" '"$INSTDIR\universalmolecule-qt" "%1"'
 SectionEnd

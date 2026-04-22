@@ -265,15 +265,15 @@ mkdir -p %{buildroot}%{_datadir}/applications
 cat <<EOF > %{buildroot}%{_datadir}/applications/bitcoin-core.desktop
 [Desktop Entry]
 Encoding=UTF-8
-Name=Bitcoin
-Comment=Bitcoin P2P Cryptocurrency
-Comment[fr]=Bitcoin, monnaie virtuelle cryptographique pair à pair
-Comment[tr]=Bitcoin, eşten eşe kriptografik sanal para birimi
-Exec=bitcoin-qt %u
+Name=UniversalMolecule
+Comment=UniversalMolecule P2P Cryptocurrency
+Comment[fr]=UniversalMolecule, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=UniversalMolecule, eşten eşe kriptografik sanal para birimi
+Exec=universalmolecule-qt %u
 Terminal=false
 Type=Application
 Icon=bitcoin128
-MimeType=x-scheme-handler/bitcoin;
+MimeType=x-scheme-handler/universalmolecule;
 Categories=Office;Finance;
 EOF
 # change touch date when modifying desktop
