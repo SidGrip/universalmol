@@ -15,8 +15,8 @@
 
 #include <climits>
 
-// BEGIN BLAKECOIN: Blakecoin difficulty adjustment algorithm
-// Difficulty adjustment every 20 blocks (1 hour with 3-minute blocks)
+// BEGIN UNIVERSALMOLECULE: legacy Blake-family difficulty adjustment algorithm
+// Difficulty adjustment uses params.DifficultyAdjustmentInterval() (5 blocks on UMO mainnet).
 // Max difficulty increase: 15% (3% after block 3500)
 // Max difficulty decrease: 50%
 
@@ -25,14 +25,13 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     assert(pindexLast != nullptr);
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
 
-    // Only change once per difficulty adjustment interval (every 20 blocks for Blakecoin)
+    // Only change once per difficulty adjustment interval.
     if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
     {
         if (params.fPowAllowMinDifficultyBlocks)
         {
-            // Special difficulty rule for testnet:
-            // If the new block's timestamp is more than 2* 3 minutes (Blakecoin)
-            // then allow mining of a min-difficulty block.
+            // Special difficulty rule for testnet: if the new block's timestamp
+            // is more than 2x the target spacing, allow a min-difficulty block.
             if (pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing*2)
                 return nProofOfWorkLimit;
             else
@@ -93,7 +92,7 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
     return bnNew.GetCompact();
 }
 
-// BEGIN BLAKECOIN: CheckProofOfWork for Blakecoin
+// BEGIN UNIVERSALMOLECULE: Blake-family proof-of-work checks
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
 {
     bool fNegative;
@@ -147,4 +146,4 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const Consensus::Params& 
 
     return true;
 }
-// END BLAKECOIN
+// END UNIVERSALMOLECULE

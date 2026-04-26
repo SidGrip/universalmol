@@ -42,12 +42,9 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  * transaction cannot be spent since it did not originally exist in the
  * database.
  *
- * Blakecoin Genesis Block:
- * CBlock(hash=0000000f14c5..., ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, nTime=1372066561, nBits=1d00ffff, nNonce=421575, vtx=1)
- *   CTransaction(hash=4a5e1e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
- *     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d010445...)
- *     CTxOut(nValue=50.00000000, scriptPubKey=...)
- *   vMerkleTree: 4a5e1e
+ * UniversalMolecule genesis block parameters are passed from chainparams
+ * below and use the legacy 0.8 timestamp, output script, nBits, nonce,
+ * version, and reward.
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
@@ -84,7 +81,7 @@ public:
         consensus.nSubsidyHalvingInterval = std::numeric_limits<int>::max(); // No halving
         // END UNIVERSALMOLECULE
         consensus.BIP34Height = 100000000; // Disabled - far in future
-        consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
+        consensus.BIP34Hash = uint256();
         consensus.BIP65Height = 100000000; // Disabled - far in future
         consensus.BIP66Height = 100000000; // Disabled - far in future
         consensus.powLimit = uint256S("000000ffff000000000000000000000000000000000000000000000000000000");
@@ -94,10 +91,10 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.fStrictChainId = true;
         consensus.nAuxpowChainId = 0x000f;
-        // Preserve the legacy nominal AuxPow activation height from the 0.8.x
-        // UniversalMolecule tree. Historical sync compatibility is handled in
-        // validation.cpp by accepting pre-start AuxPow-bearing blocks, matching
-        // legacy behavior during bootstrap import and IBD.
+        // Preserve the legacy shipped mainnet AuxPoW activation height.
+        // Historical sync compatibility is handled by accepting pre-start
+        // AuxPoW-bearing blocks, matching UniversalMolecule 0.8 behavior
+        // during bootstrap import and IBD.
         consensus.nAuxpowStartHeight = 160000;
         consensus.nRuleChangeActivationThreshold = 4;
         consensus.nMinerConfirmationWindow = 5;
@@ -127,7 +124,7 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        // BEGIN BLAKECOIN: Message start bytes (same as Bitcoin mainnet)
+        // BEGIN UNIVERSALMOLECULE: Message start bytes from legacy 0.8 mainnet.
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xd3;
         pchMessageStart[2] = 0xe7;
@@ -136,6 +133,10 @@ public:
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1405307607, 79480397, 503382015, 112, 1 * COIN);
+        // Legacy 0.8 main.cpp hardcoded this hashGenesisBlock and asserted the
+        // generated genesis against it. The 0.8 checkpoints.cpp height-0 entry
+        // used a conflicting 0000007b... hash; keep checkpoints aligned with
+        // the consensus genesis hash.
         consensus.hashGenesisBlock = uint256S("0x00000059f24d9e85501bd3873fac0cd6e8a43fd8c20eee856082dbdcc09a8e64");
         assert(genesis.hashMerkleRoot == uint256S("0x11ad2754baede90db86d491ada7030551bd3f0d72a7486ef57fe8fcf44c3b6b4"));
 
@@ -159,6 +160,8 @@ public:
 
         checkpointData = (CCheckpointData) {
             {
+                // Height 0 follows consensus.hashGenesisBlock above; legacy
+                // 0.8 checkpoints.cpp had a conflicting pasted value here.
                 {0,       uint256S("0x00000059f24d9e85501bd3873fac0cd6e8a43fd8c20eee856082dbdcc09a8e64")},
                 {76213,   uint256S("0x4549b6d0818927ba374f2598aec5eb29837b44e5c28f6f96124acd16c4cc85ae")},
                 {353493,  uint256S("0x33ccccb250b7aeec44c5e244b8e6dc7b5b67b44714bbc88cafc2e49f99e3e494")},
@@ -182,7 +185,7 @@ class CTestNetParams : public CChainParams {
 public:
     CTestNetParams() {
         strNetworkID = "test";
-        // Keep testnet aligned with Blakecoin mainnet instead of inherited Bitcoin defaults.
+        // Keep testnet aligned with UniversalMolecule instead of inherited Bitcoin defaults.
         consensus.nSubsidyHalvingInterval = std::numeric_limits<int>::max(); // No halving
         consensus.BIP34Height = 100000000; // Disabled - far in future
         consensus.BIP34Hash = uint256();
@@ -284,7 +287,8 @@ public:
         consensus.nAuxpowChainId = 0x000f;
         consensus.nAuxpowStartHeight = 0;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
-        consensus.nMinerConfirmationWindow = 144; // Faster than normal for regtest (144 instead of 2016)
+        // Keep Bitcoin's shorter regtest BIP9 window for functional tests; mainnet/testnet use UMO's 5-block window.
+        consensus.nMinerConfirmationWindow = 144;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 999999999999ULL;
