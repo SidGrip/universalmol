@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+#  universalmoleculed The UniversalMolecule Core server.
+#
+#
+# chkconfig: 345 80 20
+# description: universalmoleculed
+# processname: universalmoleculed
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/universalmoleculed, see below
+if [ -f /etc/sysconfig/universalmoleculed ]; then
+        . /etc/sysconfig/universalmoleculed
+fi
+
+RETVAL=0
+
+prog=universalmoleculed
+# you can override the lockfile via UNIVERSALMOLECULED_LOCKFILE in /etc/sysconfig/universalmoleculed
+lockfile=${UNIVERSALMOLECULED_LOCKFILE-/var/lock/subsys/universalmoleculed}
+
+# universalmoleculed defaults to /usr/bin/universalmoleculed, override with UNIVERSALMOLECULED_BIN
+universalmoleculed=${UNIVERSALMOLECULED_BIN-/usr/bin/universalmoleculed}
+
+# universalmoleculed opts default to -disablewallet, override with UNIVERSALMOLECULED_OPTS
+universalmoleculed_opts=${UNIVERSALMOLECULED_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $universalmoleculed $universalmoleculed_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog -t600
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

@@ -1,0 +1,33 @@
+# /etc/conf.d/universalmoleculed: config file for /etc/init.d/universalmoleculed
+
+# Config file location
+#UNIVERSALMOLECULED_CONFIGFILE="/etc/universalmolecule/universalmolecule.conf"
+
+# What directory to write pidfile to?  (created and owned by $UNIVERSALMOLECULED_USER)
+#UNIVERSALMOLECULED_PIDDIR="/var/run/universalmoleculed"
+
+# What filename to give the pidfile
+#UNIVERSALMOLECULED_PIDFILE="${UNIVERSALMOLECULED_PIDDIR}/universalmoleculed.pid"
+
+# Where to write universalmoleculed data (be mindful that the blockchain is large)
+#UNIVERSALMOLECULED_DATADIR="/var/lib/universalmoleculed"
+
+# User and group to own universalmoleculed process
+#UNIVERSALMOLECULED_USER="universalmolecule"
+#UNIVERSALMOLECULED_GROUP="universalmolecule"
+
+# Path to universalmoleculed executable
+#UNIVERSALMOLECULED_BIN="/usr/bin/universalmoleculed"
+
+# Nice value to run universalmoleculed under
+#UNIVERSALMOLECULED_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+#UNIVERSALMOLECULED_OPTS=""
+
+# The timeout in seconds OpenRC will wait for universalmoleculed to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+UNIVERSALMOLECULED_SIGTERM_TIMEOUT=600
