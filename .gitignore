@@ -103,6 +103,9 @@ src/qt/bitcoin-qt.includes
 *.qm
 Makefile
 !depends/Makefile
+!src/qt/Makefile
+!src/qt/test/Makefile
+!src/test/Makefile
 src/qt/bitcoin-qt
 Bitcoin-Qt.app
 
