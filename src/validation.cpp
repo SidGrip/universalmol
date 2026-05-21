@@ -10,6 +10,7 @@
 
 #include <arith_uint256.h>
 #include <chain.h>
+#include <chainparamsbase.h>
 #include <checkqueue.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
@@ -1999,7 +2000,10 @@ DisconnectResult Chainstate::DisconnectBlock(const CBlock& block, const CBlockIn
     // Note: the blocks specified here are different than the ones used in ConnectBlock because DisconnectBlock
     // unwinds the blocks in reverse. As a result, the inconsistency is not discovered until the earlier
     // blocks with the duplicate coinbase transactions are disconnected.
-    bool fEnforceBIP30 = !IsBIP30Unspendable(*pindex);
+    const bool legacy_mainnet_pre_bip34 = m_chainman.GetParams().NetworkIDString() == CBaseChainParams::MAIN &&
+                                          pindex->nHeight > 0 &&
+                                          pindex->nHeight < m_chainman.GetParams().GetConsensus().BIP34Height;
+    bool fEnforceBIP30 = !legacy_mainnet_pre_bip34 && !IsBIP30Unspendable(*pindex);
 
     // undo transactions in reverse order
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
@@ -2248,7 +2252,10 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     // Now that the whole chain is irreversibly beyond that time it is applied to all blocks except the
     // two in the chain that violate it. This prevents exploiting the issue against nodes during their
     // initial block download.
-    bool fEnforceBIP30 = !IsBIP30Repeat(*pindex);
+    const bool legacy_mainnet_pre_bip34 = params.NetworkIDString() == CBaseChainParams::MAIN &&
+                                          pindex->nHeight > 0 &&
+                                          pindex->nHeight < params.GetConsensus().BIP34Height;
+    bool fEnforceBIP30 = !legacy_mainnet_pre_bip34 && !IsBIP30Repeat(*pindex);
 
     // Once BIP34 activated it was not possible to create new duplicate coinbases and thus other than starting
     // with the 2 existing duplicate coinbase pairs, not possible to create overwriting txs.  But by the
@@ -2313,7 +2320,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     // TODO: Remove BIP30 checking from block height 1,983,702 on, once we have a
     // consensus change that ensures coinbases at those heights cannot
     // duplicate earlier coinbases.
-    if (fEnforceBIP30 || pindex->nHeight >= BIP34_IMPLIES_BIP30_LIMIT) {
+    if (!legacy_mainnet_pre_bip34 && (fEnforceBIP30 || pindex->nHeight >= BIP34_IMPLIES_BIP30_LIMIT)) {
         for (const auto& tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
                 if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
@@ -5783,19 +5790,83 @@ Chainstate& ChainstateManager::ActivateExistingSnapshot(CTxMemPool* mempool, uin
 
 bool IsBIP30Repeat(const CBlockIndex& block_index)
 {
-    // UMO mainnet duplicate-coinbase history. This later block repeats the
-    // prior height-206688 coinbase txid; ConnectBlock exempts only this exact
-    // height/hash pair from the BIP30 overwrite check.
-    return block_index.nHeight == 206689 &&
-           block_index.GetBlockHash() == uint256S("0xbef4e3fa7af68826e18264f4f4a1ad510e0c881cb5a9c8fde02f190f1da74f7c");
+    // UMO mainnet duplicate-coinbase history. These later blocks repeat prior
+    // coinbase txids; ConnectBlock exempts only these exact height/hash pairs
+    // from the BIP30 overwrite check.
+    static const std::pair<int, const char*> repeats[] = {
+        {206689, "0xbef4e3fa7af68826e18264f4f4a1ad510e0c881cb5a9c8fde02f190f1da74f7c"},
+        {206724, "0x7ab5e81ba287637dfadac015c24f70f76da2818718d3188abee8cbf7f313a4a3"},
+        {207029, "0x155acede089f7cabf4803974493575346cd6183913d18b11c88abda64614c144"},
+        {207152, "0x7cbda0122513971a72cb310c493ef37535d07efc2acf92c721c0def055f664a5"},
+        {207624, "0x22b039ca08a44f864015368cd65860772fc7accb2b8bdaa80b601271b4159c4d"},
+        {208373, "0xe69d451c6352b14072d97b0df97ff2d64cb0a5dbf62e20a3b423f9d89144ec02"},
+        {208558, "0xebb5f3b571b93e3ca03d48a6a484101028833be11225dad032dbbb15346cb231"},
+        {208718, "0x930396cffab988ca9c7789cf27ad1b66e36af3137dc689f6ef6c72169c6b82a1"},
+        {210809, "0x9c5f7feb7058af792191d245507382c21fb537481bdc2a532af332af7cd42c35"},
+        {210813, "0x23be32f1cbde08d9dcad6bc73a3c12c89ed7ba7f204d41840be1b1f104747b05"},
+        {210821, "0xb842429930ae198febdf95384f60a598b3f10ab116ac3e548f9fc8808df03034"},
+        {210849, "0xe5f4e832382fa04f7b2f36144d09d6af0dfed55ead028f364a3abaf439e5cc1c"},
+        {210881, "0x887fc05da79c5077a437793b8d4f148496aaddab5bef6852d75af22eb2c0eb7d"},
+        {210949, "0xb6ababee192df758dbb534956293803d6b4faad534845e3a830a01dc7a9fa134"},
+        {210994, "0x64b8dae7e59baab87da5dbf58cfa1558f64461bf6b28c5e1676cf8918c450066"},
+        {211003, "0x6e910c8b7dded41bab929e8b05b54e78f3b1170e876ce66642b9278ec42463ee"},
+        {211139, "0x1bb41ed709b0cbcc4b65c9d6b9242c7f59ef36e4df4f1000df8b146a8f66f187"},
+        {212234, "0xadf5f13f660ed6a7aa032638c434761fc535511739d664afc0d138b0ea353925"},
+        {212444, "0x020167ff5810ae374da07cd62fd0db3d2533824c8d142408f3c7fe553f37752e"},
+        {224196, "0xdce0fdf1fae97c467abfe2308cd37ed9554768803db33792f81452c3cb8f5e96"},
+        {224524, "0xa85a6d183b0efcff161c233ff47440fd1a8f3e39631b17fac875bc8d07f2f4d4"},
+        {224742, "0x34ba6533aa959824c402794ee4c19776f14595d7f583cd4eeff628815599b1a5"},
+        {247572, "0x4eef76bc60452500f0bcd30ef6d08d68173cba193a475055050b9e793f80ed4b"},
+        {909259, "0x0cac6ce7a62e43f49926fb1460a7c4993dd3c1b348634d722027a231c754e3cc"},
+    };
+
+    for (const auto& repeat : repeats) {
+        if (block_index.nHeight == repeat.first &&
+            block_index.GetBlockHash() == uint256S(repeat.second)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool IsBIP30Unspendable(const CBlockIndex& block_index)
 {
-    // Earlier block whose coinbase output becomes unspendable because the
-    // next block repeats the coinbase txid.
-    return block_index.nHeight == 206688 &&
-           block_index.GetBlockHash() == uint256S("0x098ec09671474fbc06bd577f8c8b0b9bdeb79f997b0e5d5b8a1bd1b5c3974e3d");
+    // Earlier blocks whose coinbase outputs become unspendable because later
+    // blocks repeat the coinbase txids.
+    static const std::pair<int, const char*> unspendable[] = {
+        {206688, "0x098ec09671474fbc06bd577f8c8b0b9bdeb79f997b0e5d5b8a1bd1b5c3974e3d"},
+        {206722, "0x0209a50e6dd2a17cd0814ffad8fab69eacd6394e8b78ab3086fe6e8e3d64626d"},
+        {207026, "0x38ae64f64a24aa276a95932fd17f6d0e1eaf7ef67e4d21fa5170388a5a462ede"},
+        {207151, "0x15ad91b364da96b8cb23a85b657ddd21a2f30286db47ef70e32630d36102a3b4"},
+        {207620, "0x9cf5a8dbc6a011a3982108b95c0b727c67d396a9f51742371ee0b43211fd9675"},
+        {208372, "0x01fdb1b61a54cd9e883827745a27c1d5133b9a3e23a3a0e00de310247bc9a403"},
+        {208555, "0xbdc72f1b9fcfc039356e57b104d8e2ac4c237fd2ee5746a759481ce40e9d17bf"},
+        {208716, "0xd3ff089def7f4a099646d37f97074f1676f9a3cc249883131981a8d1e738c295"},
+        {210808, "0x711c15ca3b3d9fbcfe9c6162ba0f0865623db4aead7be525a44c677db015831a"},
+        {210812, "0xc9f75206975a5fdbceb378717abd50d882691eaa2a932bab374bd8d9b18c4a93"},
+        {210820, "0x274e1e15adc4016c19923cd08fa2cf42d9369ae5dfe751dc54af3eb3dc3aa776"},
+        {210848, "0x96d17efb8e13a784ef4a318675de46e3ae32842ecb82fc9560e16478291ac164"},
+        {210880, "0xe506f785bb7d3f1745c832c18a6c552f743abdfebebbf204d84285eaf89352ef"},
+        {210948, "0x714fe8b180b347fceb3cc5aebe1b7c1a70670906ef7b416e8ee16cfb91e64301"},
+        {210992, "0x7b579da6959bd212012f1730f07434caca53505381a9efe81e53648b525bb175"},
+        {211002, "0x0c1d776b6df0f7142eebc0eeec2451e9222111f764b1bfa9dce659d915ab8fde"},
+        {211138, "0xd51aef34a71dbcebb106988b43d8a3bf570c2cd209931c8c98d91dfbebde7187"},
+        {212231, "0x135590fcb6f5e70e3fc713cf50954a5537cb869229ccc42d630004c2fe614a87"},
+        {212443, "0xb20471c5e0eeeb1f93b6f2a34ca8470603c1abe7cc4c16a3ffea09b88c43c2d1"},
+        {224195, "0x0b890d81827e44f9a442d12a7abe8fe14cca4df19768f96489f3bff9ddb4e9a0"},
+        {224523, "0x25f9560945ab8d53e331611fe9c2a1fc805ef78612299092777a9867cf0ba58a"},
+        {224740, "0xb6e2a4f19fd6a9c86269e68e5a2e66bfc04f07981b7c215e111b86f6f43d8e34"},
+        {247571, "0xdc94ab4c5dde1de95f29108c778804c955699a3a1ef5b6f1bbaf213203f503fc"},
+        {909255, "0xb663d1268ee939801c9c4fb9496530c3cd003a0988a47f4d1118dc25127253f5"},
+    };
+
+    for (const auto& block : unspendable) {
+        if (block_index.nHeight == block.first &&
+            block_index.GetBlockHash() == uint256S(block.second)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Chainstate::InvalidateCoinsDBOnDisk()
