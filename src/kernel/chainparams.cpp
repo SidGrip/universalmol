@@ -101,7 +101,9 @@ public:
         // UniversalMolecule SegWit is inherited from the 0.15.21 mainnet activation.
         // 0.25.2 buries this height and does not re-signal SegWit.
         consensus.SegwitHeight = 4108645;
-        consensus.MinBIP9WarningHeight = 0;
+        // Ignore historical unknown-versionbit signaling before buried SegWit.
+        // Warnings remain enabled after this point.
+        consensus.MinBIP9WarningHeight = 4108645;
         consensus.powLimit = uint256S("000000ffff000000000000000000000000000000000000000000000000000000");
         consensus.nPowTargetTimespan = 600;
         consensus.nPowTargetSpacing = 120;
@@ -126,8 +128,8 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeout = 1814407200;
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].min_activation_height = 4146228;
 
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000006562d500a4f8b187f0");
-        consensus.defaultAssumeValid = uint256S("0x59d088a108d7c870c4b8d4c957273e59092b9cf62bd26c8e12b69060c5c7ff0f");
+        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000658184225d0a716708");
+        consensus.defaultAssumeValid = uint256S("0xb0c8a3625ed218dd8c168715c17cfc5bd4bd6a4d8b6273ceb27982b7c196ca77");
 
         // UniversalMolecule AuxPoW chain identity (consumed by Phase 2 AuxPoW core).
         // mainnet: strict chain-ID, AuxPoW activates at historical height 160000.
@@ -175,7 +177,7 @@ public:
         m_is_mockable_chain = false;
 
         // UniversalMolecule mainnet checkpoints, lifted from UniversalMolecule-0.15.21
-        // and refreshed with a 2026-04-27 release anchor.
+        // and refreshed with live 0.25.2 anchors through height 4120000.
         checkpointData = {
             {
                 {0,       uint256S("0x00000059f24d9e85501bd3873fac0cd6e8a43fd8c20eee856082dbdcc09a8e64")},
@@ -185,6 +187,9 @@ public:
                 {2509078, uint256S("0xf002204932fd73ecf2eaf6c662cb0a2ca3178752818d1f94dafe2b0a1da21be3")},
                 {4082265, uint256S("0x59d088a108d7c870c4b8d4c957273e59092b9cf62bd26c8e12b69060c5c7ff0f")},
                 {4108645, uint256S("0x0b5d80b6d5d72c43f16be3947bae07652eee910fb477af657f6e2e38ff954b78")},
+                {4110000, uint256S("0xcfc76747b2b3aef3d2964617b9c39cd20040db1ddbc29ea71a8bde54d463a3bc")},
+                {4115000, uint256S("0xe1817a0351f5ce82d0830fa42c8c49f9ee1f7516371d22e2d52697e376cc064d")},
+                {4120000, uint256S("0xb0c8a3625ed218dd8c168715c17cfc5bd4bd6a4d8b6273ceb27982b7c196ca77")},
             }
         };
 
@@ -193,9 +198,9 @@ public:
         };
 
         chainTxData = ChainTxData{
-            .nTime    = 1776030215,
-            .nTxCount = 4566280,
-            .dTxRate  = 0.01100746561474917,
+            .nTime    = 1779498269,
+            .nTxCount = 4604996,
+            .dTxRate  = 0.01094604345594882,
         };
     }
 };

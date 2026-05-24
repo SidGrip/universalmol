@@ -10,7 +10,7 @@ SetCompressor /SOLID lzma
 !define URL https://github.com/BlueDragon747/universalmol
 
 # MUI Symbol Definitions
-!define MUI_ICON "/home/sid/Blakestream-Installer/repos/universalmol-0.15.21/share/pixmaps/bitcoin.ico"
+!define MUI_ICON "@/share/pixmaps/universalmolecule.ico"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "/home/sid/Blakestream-Installer/repos/universalmol-0.15.21/share/pixmaps/nsis-wizard.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
