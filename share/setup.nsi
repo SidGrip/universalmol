@@ -48,11 +48,11 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile /home/sid/Blakestream-Installer/repos/universalmol-0.15.21/universalmolecule-${VERSION}-win-setup.exe
+OutFile /home/sid/Blakestream-Installer/repos/universalmolecule-0.25.2/universalmolecule-${VERSION}-win-setup.exe
 !if "" == "64"
-InstallDir $PROGRAMFILES64\Bitcoin
+InstallDir $PROGRAMFILES64\UniversalMolecule
 !else
-InstallDir $PROGRAMFILES\Bitcoin
+InstallDir $PROGRAMFILES\UniversalMolecule
 !endif
 CRCCheck on
 XPStyle on
