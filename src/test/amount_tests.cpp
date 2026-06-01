@@ -83,6 +83,9 @@ BOOST_AUTO_TEST_CASE(GetFeeTest)
     // some more integer checks
     BOOST_CHECK(CFeeRate(CAmount(26), 789) == CFeeRate(32));
     BOOST_CHECK(CFeeRate(CAmount(27), 789) == CFeeRate(34));
+    // Extreme fee rates saturate instead of overflowing during conversion to satoshis per kvB.
+    BOOST_CHECK_EQUAL(CFeeRate(std::numeric_limits<CAmount>::max(), 1).GetFeePerK(), std::numeric_limits<CAmount>::max());
+    BOOST_CHECK_EQUAL(CFeeRate(std::numeric_limits<CAmount>::min(), 1).GetFeePerK(), std::numeric_limits<CAmount>::min());
     // Maximum size in bytes, should not crash
     CFeeRate(MAX_MONEY, std::numeric_limits<uint32_t>::max()).GetFeePerK();
 }
